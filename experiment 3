@@ -1,0 +1,186 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'splash_screen.dart';
+import 'home_screen.dart';
+import 'onboarding_screen.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Onboarding App',
+      home: SplashScreen(),
+    );
+  }
+}
+
+
+
+
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'onboarding_screen.dart';
+import 'home_screen.dart';
+
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _navigate();
+  }
+
+  void _navigate() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isFirstTime = prefs.getBool('firstTime') ?? true;
+
+    Timer(Duration(seconds: 3), () {
+      if (isFirstTime) {
+        prefs.setBool('firstTime', false);
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => OnboardingScreen()));
+      } else {
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => HomeScreen()));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Image.asset('assets/splash_image.png', width: 200, height: 200),
+      ),
+    );
+  }
+}
+
+
+
+import 'package:flutter/material.dart';
+import 'home_screen.dart';
+
+class OnboardingScreen extends StatefulWidget {
+  @override
+  _OnboardingScreenState createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  PageController _controller = PageController();
+  int _currentPage = 0;
+
+  List<Map<String, String>> _onboardingData = [
+    {
+      "title": "Welcome to Our App",
+      "description": "This is the first onboarding screen.",
+      "image": "assets/onboarding1.png"
+    },
+    {
+      "title": "Explore Features",
+      "description": "Learn about what you can do.",
+      "image": "assets/onboarding2.png"
+    },
+    {
+      "title": "Get Started",
+      "description": "Let's start using the app!",
+      "image": "assets/onboarding3.png"
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _controller,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: _onboardingData.length,
+            itemBuilder: (context, index) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(_onboardingData[index]["image"]!, height: 250),
+                  SizedBox(height: 20),
+                  Text(
+                    _onboardingData[index]["title"]!,
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Text(_onboardingData[index]["description"]!),
+                ],
+              );
+            },
+          ),
+          Positioned(
+            bottom: 30,
+            left: 20,
+            child: _currentPage != 2
+                ? TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()));
+                    },
+                    child: Text("Skip"),
+                  )
+                : Container(),
+          ),
+          Positioned(
+            bottom: 30,
+            right: 20,
+            child: ElevatedButton(
+              onPressed: () {
+                if (_currentPage == 2) {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()));
+                } else {
+                  _controller.nextPage(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeIn);
+                }
+              },
+              child: Text(_currentPage == 2 ? "Finish" : "Next"),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+import 'package:flutter/material.dart';
+
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Home Screen")),
+      body: Center(
+        child: Text(
+          "Welcome to Home!",
+          style: TextStyle(fontSize: 20),
+        ),
+      ),
+    );
+  }
+}
+
+
